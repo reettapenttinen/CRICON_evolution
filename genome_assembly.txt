@@ -1,0 +1,24 @@
+####### GENOME ASSEMBLY AND ANNOTATION OF THE COMMUNITY MEMBERS #######
+
+# 1. Read trimming for paired illumina reads with fastp
+
+for i in *_1.fq.gz
+do
+  base=$(basename $i "_1.fq.gz")
+	fastp --in1=$i --in2="${base}_2.fq.gz" --out1="${base}_fastp_full_1.fq" --out2="${base}_fastp_full_2.fq" --unpaired1="${base}_fastp_full_1up.fq" --unpaired2="${base}_fastp_full_2up.fq" --dedup -f 9 -F 9 --thread=16 --detect_adapter_for_pe --length_required=80 --overrepresentation_analysis --html="${base}_fastp_full_report.html" --json="${base}_fastp_full_report.json" 
+done
+
+# 2. Genome assembly using trimmed reads
+
+for i in *_fastp_full_1.fq
+do
+  base=$(basename $i "_fastp_full_1.fq")
+  s="${base}_fastp_full_2.fq"
+	python spades.py --isolate --pe1-1 $i --pe1-2 $s -t 16 -o "${base}_Spades" -m 145
+done
+
+# 3. Genome annotation for assembled contigs using prokka
+
+name=assembled_contigs.fasta
+base=$(basename $name ".fasta")
+prokka --cpus $SLURM_CPUS_PER_TASK --outdir "${base}_prokka" --prefix $base --addgenes $name
