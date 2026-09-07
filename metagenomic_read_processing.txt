@@ -1,0 +1,20 @@
+####### METAGENOMIC READ DATA PROCESSING #######
+
+# 1. Metagenomic read trimming 
+
+for i in *_1.fq.gz
+do
+  base=$(basename $i "_1.fq.gz")
+	fastp --in1=$i --in2="${base}_2.fq.gz" --out1="${base}_fastp_full_1.fq" --out2="${base}_fastp_full_2.fq" --unpaired1="${base}_fastp_full_1up.fq" --unpaired2="${base}_fastp_full_2up.fq" --dedup -f 9 -F 9 --thread=16 --detect_adapter_for_pe --length_required=80 --overrepresentation_analysis --html="${base}_fastp_full_report.html" --json="${base}_fastp_full_report.json" 
+
+done
+
+
+# 2. Metagenomic read subsampling 
+#subsamples 3800000 paired reads
+
+i=trimmed_reads_1.fq
+base=$(basename $i "_1.fq")
+s="${base}_2.fq"
+  seqtk sample -s100 $i 3800000 > "${base}_sub_1.fq"
+  seqtk sample -s100 $s 3800000 > "${base}_sub_2.fq"
