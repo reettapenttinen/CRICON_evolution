@@ -1,0 +1,23 @@
+####### BUILDING A CUSTOM KRAKEN DATABASE FOR COMMUNITY ANALYSIS #######
+
+# 1. Add NCBI taxonomy to each community member genome assembly
+seqfu cat --append "|kraken:taxid|562" assembled_contigs.fasta > assembled_contigs_taxid.fasta
+
+# 2. Add each community member to the library in a loop and build the database (community_db)
+
+for i in *_taxid.fasta
+	do
+		kraken2-build --add-to-library $i --db community_db
+	done 
+
+kraken2-build --download-taxonomy --db community_db
+kraken2-build --build --db community_db
+kraken2-build --clean --db community_db
+
+# 3. Running kraken using the subsampled reads
+
+base=$(basename $i "_sub_1.fq")
+R1="${base}_sub_1.fq"
+R2="${base}_sub_2.fq"
+
+kraken2 --db community_db --threads 10 --report "${base}_kraken_report_sub.txt" --report-minimizer-data --minimum-hit-groups 2 --use-names --paired R1 R2
