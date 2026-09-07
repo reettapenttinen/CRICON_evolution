@@ -1,0 +1,18 @@
+####### MUTATION ANALYSIS OF THE ISOLATED PLASMID-CARRYING CLONES #######
+
+# 1. Read processing
+
+fastp --in1=$name --in2="${base}_2.fq.gz" --out1="${base}_fastp_full_1.fq" --out2="${base}_fastp_full_2.fq"  --dedup -f 9 -F 9 --thread=4 --detect_adapter_for_pe --length_required=100 --overrepresentation_analysis --html="${base}_fastp_full_report.html" --json="${base}_fastp_full_report.json"
+
+
+# 2. Mutation tracing with breseq
+
+base=$(basename "$name" _fastp_full_1.fq)
+
+  echo $base
+R1="${base}_fastp_full_1.fq"
+  echo $R1
+R2="${base}_fastp_full_2.fq"
+  echo $R2
+
+breseq -r reference_genome.gb $R1 $R2
